@@ -1,5 +1,5 @@
 // frontend/script.js
-const BACKEND_URL = 'http://localhost:8000'; // Will be replaced by deployed URL
+const BACKEND_URL = 'http://54.211.122.75'; // Will be replaced by deployed URL
 
 document.addEventListener('DOMContentLoaded', fetchTodos);
 
