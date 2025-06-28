@@ -1,0 +1,58 @@
+# .github/workflows/main.yml
+name: CI/CD Pipeline for To-Do App
+
+on:
+  push:
+    branches:
+      - main # Trigger on push to main branch
+  pull_request:
+    branches:
+      - main # Trigger on pull request to main branch
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest # Use a fresh Ubuntu VM for each job
+
+    steps:
+    - name: Checkout repository code
+      uses: actions/checkout@v4 # Action to check out your repository
+
+    - name: Set up Python environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9' # Specify the Python version
+
+    - name: Install backend dependencies
+      run: pip install -r backend/requirements.txt # Install Flask and Flask-CORS
+
+    - name: Run backend tests
+      run: export PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE && pytest # Execute your unit tests from the root
+
+    - name: Build Docker image
+      # Use your Docker Hub username and a chosen image name
+      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/devops-todo-backend:${{ github.sha }} .
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Push Docker image to Docker Hub
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/devops-todo-backend:${{ github.sha }}
+
+    - name: Tag and Push 'latest'
+      run: |
+        docker tag ${{ secrets.DOCKER_USERNAME }}/devops-todo-backend:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/devops-todo-backend:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/devops-todo-backend:latest
+
+  # This is a conceptual deployment step. Actual deployment will happen via Terraform Cloud.
+  # This step just shows where a "notification" or "trigger" for deployment could go.
+  # We will rely on Terraform Cloud's GitOps functionality later.
+  # deploy:
+  #   needs: build-and-test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Deployment Placeholder
+  #     run: echo "Deployment would be triggered here, perhaps by Terraform Cloud webhook or CLI."
+
