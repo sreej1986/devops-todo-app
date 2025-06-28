@@ -1,0 +1,9 @@
+# .dockerignore
+.git
+.venv
+__pycache__
+*.pyc
+*.log
+.DS_Store
+frontend/ # Don't need frontend code in the backend image
+tests/    # Don't need tests in the final image
